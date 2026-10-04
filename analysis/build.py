@@ -75,10 +75,20 @@ def ytd_table(snap):
 def trend_word(growth_pct):
     if growth_pct is None:
         return "データなし"
-    for limit, word in ((10, "大きく伸びている"), (3, "伸びている"), (-3, "横ばい"), (-10, "減っている")):
+    for limit, word in ((10, "増えている"), (3, "やや増えている"), (-3, "ほぼ同じ"), (-10, "やや減っている")):
         if growth_pct >= limit:
             return word
-    return "大きく減っている"
+    return "減っている"
+
+
+MAN = {"千枚": ("万枚", 0.1), "千巻": ("万本", 0.1), "百万枚": ("万枚", 100), "百万円": ("億円", 0.01)}
+
+
+def amount(v, unit):
+    """統計の数字を「約7,159万枚」のような読みやすい形にする。"""
+    name, k = MAN.get(unit, (unit, 1))
+    x = v * k
+    return f"約{x:,.0f}{name}" if x >= 100 else f"約{x:,.1f}{name}"
 
 
 def used_demand(cfg, snap):
@@ -188,21 +198,25 @@ def media(cfg, snap):
     for fid, f in cfg["formats"].items():
         lines, growths = [], []
         for region in ("jp", "us"):
-            s = by_id.get(f"{region}_{fid}_units")
-            if s and s.get("ytd"):
-                y = s["ytd"]
+            s_ = by_id.get(f"{region}_{fid}_units")
+            if s_ and s_.get("ytd"):
+                y = s_["ytd"]
                 growths.append(y["yoy_pct"])
-                lines.append(f"{REGION_LABEL[region]}の新品: {y['year']}年{y['period']}の枚数は前年より {y['yoy_pct']:+.0f}%")
+                line = (f"{REGION_LABEL[region]}の新品: {y['period']}で{amount(y['value'], s_['unit'])}"
+                        f"(去年の同じ時期は{amount(y['prev'], s_['unit'])}、{y['yoy_pct']:+.0f}%)")
+                if abs(y["yoy_pct"]) >= 40 and y["prev"] * MAN.get(s_["unit"], ("", 1))[1] < 100:
+                    line += "。もともとの数が少ないので、少し増えただけで%が大きく出ます"
+                lines.append(line)
         d = demand["formats"].get(fid)
         if d:
-            txt = (f"中古: 人気盤は品薄(欲しい人が、持っている人の {d['ratio']}倍)" if d["ratio"] >= 1 else
-                   f"中古: 人気盤は出回っている(欲しい人は、持っている人の {d['ratio']}倍)")
+            if d["ratio"] >= 1:
+                txt = f"中古: 人気の盤は、欲しい人{d['ratio']:.1f}人に対して持っている人が1人。手に入りにくい"
+            else:
+                txt = f"中古: 人気の盤でも、欲しい人1人に対して持っている人が{1 / d['ratio']:.1f}人。品薄ではない"
             if d.get("want_change_pct") is not None:
-                txt += f"。欲しい人は前回より {d['want_change_pct']:+.1f}%"
+                txt += f"(欲しい人は先週より {d['want_change_pct']:+.1f}%)"
             lines.append(txt)
         n = sum(1 for g in gnews if g["format"] == fid)
-        if n:
-            lines.append(f"この2週間の関連ニュース: {n}本")
         g = round(sum(growths) / len(growths), 1) if growths else None
         now.append({"format": fid, "label": f["label"], "verdict": trend_word(g), "growth_pct": g, "lines": lines})
 
@@ -276,6 +290,11 @@ def build():
     cfg = config()
     snap, prev, days = load_snapshots()
     arts = score.artists(snap, prev)
+    news = {}
+    for n in score.items(snap, "artist_news", "artist_news"):
+        news.setdefault(n["name"], []).append({k: n[k] for k in ("title", "source", "link", "date")})
+    for a in arts:
+        a["news"] = news.get(a["name"], [])
 
     # 順位の推移を残す(前回比の表示と、後から当たり外れを振り返るため)
     hist = read_json(HISTORY / "scores.json", {})

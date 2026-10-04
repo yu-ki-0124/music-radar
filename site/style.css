@@ -124,3 +124,9 @@ nav button[aria-selected="true"] { color: var(--text); font-weight: 700; box-sha
 .verdict { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--chip); }
 .now .why { font-size: 13.5px; }
 .chip.up, .chip.down { font-weight: 700; }
+.warn { color: var(--down, #b45309); }
+
+.why-news { margin-top: 8px; font-size: 13px; }
+.why-news b { display: block; font-size: 12px; color: var(--text-3); margin-bottom: 2px; }
+.why-news a { display: block; padding: 4px 0; color: var(--text); text-decoration: none; border-top: 1px solid var(--line); line-height: 1.4; }
+.why-news a small { color: var(--text-3); }

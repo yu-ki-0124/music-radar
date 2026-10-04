@@ -93,10 +93,12 @@ def artists(snap, prev):
         # 閲覧数の伸び: 横ばい=0、4倍=満点。データが無いアーティストは 0 扱い(広さだけで高得点にしない)
         w = wiki.get(k)
         growth = base = None
+        spike = False
         momentum = 0.0
         if w:
             d = w["daily"]
-            base, recent = mean(d[-35:-7]), mean(d[-7:])
+            base, recent = statistics.median(d[-35:-7]), statistics.median(d[-7:])  # 1日だけの急増に引っ張られないよう中央値で比べる
+            spike = mean(d[-7:]) > 1.8 * max(recent, 1)
             if base >= 20:
                 growth = recent / base
                 momentum = min(max(math.log2(max(growth, 0.01)), -1), 2) / 2
@@ -137,7 +139,7 @@ def artists(snap, prev):
         out.append({"name": names[k], "score": max(score, 0), "frontier": frontier, "reasons": reasons,
                     "regions": regions, "best": best, "genre": (genres[k].most_common(1) or [("", 0)])[0][0],
                     "growth": round(growth, 2) if growth else None, "base": round(base) if base else None,
-                    "new": bool(is_new), "spark": spark})
+                    "new": bool(is_new), "spark": spark, "spike": spike})
     out.sort(key=lambda a: (-a["score"], a["name"]))
     return out
 

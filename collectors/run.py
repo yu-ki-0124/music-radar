@@ -8,12 +8,13 @@ import sys
 import traceback
 from collections import Counter
 
-from . import charts, discogs, lastfm, reddit, riaj, rss, trends, wikipedia, x_api, youtube
+from . import artist_news, charts, discogs, lastfm, reddit, riaj, rss, trends, wikipedia, x_api, youtube
 from .common import SNAPSHOTS, Skip, config, read_json, today, write_json
 
 # wikipedia はチャート類から候補アーティストを受け取るので後ろに置く
 SOURCES = [("charts", charts), ("youtube", youtube), ("lastfm", lastfm), ("reddit", reddit), ("rss", rss),
-           ("riaj", riaj), ("wikipedia", wikipedia), ("discogs", discogs), ("trends", trends), ("x", x_api)]
+           ("riaj", riaj), ("wikipedia", wikipedia), ("discogs", discogs), ("trends", trends), ("x", x_api),
+           ("artist_news", artist_news)]
 
 
 SKIP_NAMES = {"various artists", "ヴァリアス・アーティスト", "soundtrack", "original soundtrack"}

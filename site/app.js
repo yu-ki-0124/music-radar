@@ -121,13 +121,19 @@ function spark(values) {
   return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--vinyl)" stroke-width="1.5"/></svg>`;
 }
 
+function newsLinks(a) {
+  if (!a.news || !a.news.length) return '';
+  return `<div class="why-news"><b>なぜ話題?(日本語の記事)</b>${a.news.map((n) => `<a href="${safeUrl(n.link)}" target="_blank" rel="noopener">${esc(n.title)}<small> ${esc(n.source || '')}${n.date ? ` ・${esc(n.date.slice(5).replace('-', '/'))}` : ''}</small></a>`).join('')}</div>`;
+}
+
 function artistRow(a, i, full = true) {
   const links = full ? `<div class="meta"><a href="https://www.youtube.com/results?search_query=${encodeURIComponent(a.name)}" target="_blank" rel="noopener">YouTubeで聴く</a> ・ <a href="https://www.discogs.com/search/?type=artist&q=${encodeURIComponent(a.name)}" target="_blank" rel="noopener">Discogsで盤を探す</a></div>` : '';
   return `<div class="row"><div class="rank">${i + 1}</div><div class="body">
     <div class="name">${esc(a.name)}${a.new ? '<span class="chip">初登場</span>' : ''}</div>
+    ${a.spike ? '<div class="meta warn">増えたのは1日だけ。一時的な話題かも</div>' : ''}
     ${a.genre ? `<div class="meta">${esc(a.genre)}</div>` : ''}
-    <ul class="why">${(full ? a.reasons : a.reasons.slice(-1)).map((r) => `<li>${esc(r)}</li>`).join('')}</ul>${full ? spark(a.spark) : ''}${links}
-  </div><div class="score"><b>${a.score}</b><small>注目度</small></div></div>`;
+    <ul class="why">${(full ? a.reasons : a.reasons.slice(-1)).map((r) => `<li>${esc(r)}</li>`).join('')}</ul>${full ? spark(a.spark) : ''}${newsLinks(a)}${links}
+  </div></div>`;
 }
 
 function nowCard(n) {
@@ -136,17 +142,30 @@ function nowCard(n) {
 }
 
 // ---- まとめ ----
+function pickRow(w) {
+  return `<div class="row"><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a>
+    <div class="meta">${esc([w.year, w.country, w.style].filter(Boolean).join(' ・'))}</div>
+    <div class="meta">欲しい人 ${fmt(w.want)}人に対して、持っている人は ${fmt(w.have)}人だけ</div></div></div>`;
+}
+
 function renderHome() {
   const rep = D.reports.weekly || D.reports.monthly;
   const report = rep
     ? `<h2>今週の読み</h2><div class="card report">${md(rep.md)}</div>${D.reports.weekly && D.reports.monthly ? `<details class="card report"><summary>今月のまとめを読む</summary>${md(D.reports.monthly.md)}</details>` : ''}`
     : '';
+  const picks = FORMATS.map((f) => {
+    const rows = (D.media.demand.picks[f] || []).slice(0, 3);
+    return rows.length ? `<div class="card"><h3>${FLABEL[f]}</h3>${rows.map(pickRow).join('')}</div>` : '';
+  }).join('');
   $('tab-home').innerHTML = `
     <h2>レコード・CD・カセットのいま</h2>
-    <p class="lead">新品の生産(公式統計)と、中古の人気を合わせて見た現状です。</p>
+    <p class="lead">新品が去年より増えているか(公式統計)と、中古で手に入りにくいか(Discogs)。</p>
     ${D.media.now.map(nowCard).join('')}
+    <h2>仕入れ候補(欲しい人が多い盤)</h2>
+    <p class="lead">世界の中古盤サイトで、欲しい人に対して持っている人が少ない盤です。タップで盤のページへ。</p>
+    ${picks}
     ${report}
-    <h2>いま伸びているアーティスト</h2>
+    <h2>最近よく調べられているアーティスト</h2>
     <div class="card">${D.artists.slice(0, 5).map((a, i) => artistRow(a, i, false)).join('')}</div>
     <p class="note">つづきは「アーティスト」タブへ。</p>
     <details class="card"><summary>データの取得状況(${D.date} 時点)</summary>
@@ -163,16 +182,17 @@ function renderMedia() {
 
   // 中古の需要
   const genreRows = d.by_genre.filter((r) => r[f]).sort((a, b) => b[f].ratio - a[f].ratio);
-  const gRow = (r) => `<tr><td>${esc(r.genre)}</td><td><b>${r[f].ratio}</b>倍</td><td>${fmt(r[f].want)}人</td>${d.since ? `<td class="${cls(r[f].want_change_pct)}">${signed(r[f].want_change_pct)}</td>` : ''}</tr>`;
-  const gHead = `<tr><th>ジャンル</th><th>品薄度</th><th>欲しい人</th>${d.since ? '<th>前回比</th>' : ''}</tr>`;
-  const pick = (w, i) => `<div class="row"><div class="rank">${i + 1}</div><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a><div class="meta">${esc([w.style, w.country, w.year].filter(Boolean).join(' ・'))}</div><div class="meta">欲しい ${fmt(w.want)}人 / 持っている ${fmt(w.have)}人${w.lowest_jpy ? ` ・最安 ¥${fmt(w.lowest_jpy)}(出品${w.for_sale}点)` : ''}</div></div><div class="score"><b>${w.ratio}</b><small>倍</small></div></div>`;
+  const state3 = (x) => (x >= 1.5 ? '品薄' : x >= 1 ? 'やや品薄' : '余裕あり');
+  const gRow = (r) => `<tr><td>${esc(r.genre)}</td><td><b>${state3(r[f].ratio)}</b></td><td>欲しい${fmt(r[f].want)}人 / 持っている${fmt(r[f].have)}人</td>${d.since ? `<td class="${cls(r[f].want_change_pct)}">${signed(r[f].want_change_pct)}</td>` : ''}</tr>`;
+  const gHead = `<tr><th>ジャンル</th><th>手に入りにくさ</th><th>欲しい人 / 持っている人</th>${d.since ? '<th>前回比</th>' : ''}</tr>`;
+  const pick = (w, i) => `<div class="row"><div class="rank">${i + 1}</div><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a><div class="meta">${esc([w.style, w.country, w.year].filter(Boolean).join(' ・'))}</div><div class="meta">欲しい ${fmt(w.want)}人 / 持っている ${fmt(w.have)}人${w.lowest_jpy ? ` ・最安 ¥${fmt(w.lowest_jpy)}(出品${w.for_sale}点)` : ''}</div></div></div>`;
   const used = genreRows.length ? `
     <h2>中古の需要</h2>
-    <p class="lead">世界最大の中古盤サイト Discogs の登録から。<b>品薄度</b>は「欲しい人 ÷ 持っている人」。1倍を超えると、欲しい人のほうが多い状態です。</p>
-    <div class="card"><h3>品薄なジャンル(${FLABEL[f]})</h3>
+    <p class="lead">世界最大の中古盤サイト Discogs の登録から。欲しい人が持っている人より多いジャンルほど「品薄」(手に入りにくい=仕入れ向き)です。</p>
+    <div class="card"><h3>手に入りにくいジャンル(${FLABEL[f]})</h3>
       <div class="scroll"><table>${gHead}${genreRows.slice(0, 8).map(gRow).join('')}</table></div>
       ${genreRows.length > 8 ? `<details><summary>全ジャンルを見る</summary><div class="scroll"><table>${gHead}${genreRows.slice(8).map(gRow).join('')}</table></div></details>` : ''}
-      <p class="note">各ジャンルで「欲しい」登録が多い上位50作品の合計。${d.since ? `前回比は ${esc(d.since)} との比較。` : '前回比は1週間分たまると表示されます。'}</p></div>
+      <p class="note">各ジャンルで「欲しい」登録が多い上位50作品の合計から。${d.since ? `前回比は ${esc(d.since)} との比較。` : '前回比は1週間分たまると表示されます。'}</p></div>
     <div class="card"><h3>仕入れ候補(${FLABEL[f]})</h3><p class="lead">欲しい人が多いのに、持っている人が少ない盤。</p>
       ${(d.picks[f] || []).slice(0, 6).map(pick).join('')}
       ${(d.picks_japan[f] || []).length ? `<details><summary>日本盤だけ見る</summary>${d.picks_japan[f].map(pick).join('')}</details>` : ''}</div>` : '';
@@ -214,7 +234,7 @@ function renderMedia() {
 function renderArtists() {
   const list = state.artists === 'rising' ? D.artists.slice(0, 30) : D.frontier.slice(0, 30);
   const lead = state.artists === 'rising'
-    ? '各国のランキングに入った数と、Wikipediaで調べる人の増え方から「注目度」(0〜100)を出しています。'
+    ? '各国の人気ランキングに入っている数と、ネット百科事典(Wikipedia)で調べる人の増え方が大きい順です。'
     : 'まだ世界的には知られていないのに、急に調べられたり、複数の国でランクインし始めた名前です。';
   $('tab-artists').innerHTML = `
     ${seg('seg-artists', [['rising', 'いま伸びている'], ['frontier', 'これから来そう']], state.artists)}
