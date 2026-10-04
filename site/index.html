@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Music Radar</title>
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Music Radar">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+<header>
+  <h1>Music Radar</h1>
+  <p id="updated"></p>
+</header>
+
+<main>
+  <section id="tab-home" class="tab"></section>
+  <section id="tab-media" class="tab" hidden></section>
+  <section id="tab-artists" class="tab" hidden></section>
+  <section id="tab-genres" class="tab" hidden></section>
+  <section id="tab-news" class="tab" hidden></section>
+</main>
+
+<nav id="tabs" role="tablist">
+  <button role="tab" data-tab="home" aria-selected="true">まとめ</button>
+  <button role="tab" data-tab="media">レコード・CD</button>
+  <button role="tab" data-tab="artists">アーティスト</button>
+  <button role="tab" data-tab="genres">ジャンル</button>
+  <button role="tab" data-tab="news">ニュース</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="app.js?v=2"></script>
+</body>
+</html>

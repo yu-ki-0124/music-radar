@@ -1,0 +1,80 @@
+name: daily
+
+on:
+  schedule:
+    - cron: "30 21 * * *"   # 毎日 日本時間 6:30
+  workflow_dispatch:
+    inputs:
+      report:
+        description: "文章レポートも作る(none / weekly / monthly)"
+        default: "none"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: music-radar
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: 収集
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          DISCOGS_TOKEN: ${{ secrets.DISCOGS_TOKEN }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: python -m collectors.run
+
+      - name: 集計
+        run: python -m analysis.build
+
+      # 文章レポート: 月曜に週次、毎月1日に月次(日付は日本時間)。キー未設定なら飛ばす
+      - name: レポート
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MUSIC_RADAR_MODEL: ${{ vars.MUSIC_RADAR_MODEL }}
+          MANUAL: ${{ github.event.inputs.report }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then echo "ANTHROPIC_API_KEY 未設定のためスキップ"; exit 0; fi
+          [ -n "$MUSIC_RADAR_MODEL" ] || unset MUSIC_RADAR_MODEL
+          made=0
+          if [ "$MANUAL" = "weekly" ] || { [ -z "$MANUAL" ] && [ "$(TZ=Asia/Tokyo date +%u)" = "1" ]; }; then
+            python -m analysis.report weekly && made=1
+          fi
+          if [ "$MANUAL" = "monthly" ] || { [ -z "$MANUAL" ] && [ "$(TZ=Asia/Tokyo date +%d)" = "01" ]; }; then
+            python -m analysis.report monthly && made=1
+          fi
+          if [ "$made" = "1" ]; then python -m analysis.build; fi
+
+      - name: データを保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || git commit -m "data: $(date -u +%F)"
+          git push
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

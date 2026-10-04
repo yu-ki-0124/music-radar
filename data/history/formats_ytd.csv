@@ -1,0 +1,5 @@
+region,format,metric,year,months,period,value,prev,source
+us,vinyl,units,2026,6,上半期,26.5,22.0,https://www.riaa.com/wp-content/uploads/2026/09/2026-Mid-Year-Music-Industry-Revenue-Report.pdf
+us,cd,units,2026,6,上半期,17.5,12.0,https://www.riaa.com/wp-content/uploads/2026/09/2026-Mid-Year-Music-Industry-Revenue-Report.pdf
+us,vinyl,value_wholesale,2026,6,上半期,543.8,461.9,https://www.riaa.com/wp-content/uploads/2026/09/2026-Mid-Year-Music-Industry-Revenue-Report.pdf
+us,cd,value_wholesale,2026,6,上半期,171.1,107.9,https://www.riaa.com/wp-content/uploads/2026/09/2026-Mid-Year-Music-Industry-Revenue-Report.pdf

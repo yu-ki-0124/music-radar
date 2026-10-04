@@ -1,0 +1,96 @@
+# Music Radar 設定。ここを書き換えるだけで監視対象を変えられる。
+
+# チャートを見る国(ISO 2文字)
+regions: [jp, us, gb, kr, de, fr, br, mx, in, ng, au, id]
+
+# 音楽メディア(フォーマット)。wiki は関心度の指標に使う Wikipedia 記事
+formats:
+  vinyl:
+    label: レコード
+    discogs: Vinyl
+    wiki: {en: [Phonograph_record, LP_record], ja: [レコード]}
+    keywords: [vinyl, lp, アナログ盤, レコード, アナログレコード, 7インチ, 12インチ]
+  cd:
+    label: CD
+    discogs: CD
+    wiki: {en: [Compact_disc], ja: [コンパクトディスク]}
+    keywords: [cd, cds, compact disc]
+  cassette:
+    label: カセット
+    discogs: Cassette
+    wiki: {en: [Cassette_tape], ja: [コンパクトカセット]}
+    keywords: [cassette, カセット]
+
+# 追跡するジャンル。discogs は Discogs のスタイル名、wiki は英語版記事名、lastfm はタグ名
+genres:
+  - {name: City Pop, discogs: City Pop, wiki: City_pop, lastfm: city pop}
+  - {name: Shoegaze, discogs: Shoegaze, wiki: Shoegaze, lastfm: shoegaze}
+  - {name: Ambient, discogs: Ambient, wiki: Ambient_music, lastfm: ambient}
+  - {name: Jazz-Funk, discogs: Jazz-Funk, wiki: Jazz-funk, lastfm: jazz funk}
+  - {name: Soul-Jazz, discogs: Soul-Jazz, wiki: Soul_jazz, lastfm: soul jazz}
+  - {name: Lo-Fi, discogs: Lo-Fi, wiki: Lo-fi_music, lastfm: lo-fi}
+  - {name: Dream Pop, discogs: Dream Pop, wiki: Dream_pop, lastfm: dream pop}
+  - {name: Hyperpop, discogs: Hyperpop, wiki: Hyperpop, lastfm: hyperpop}
+  - {name: Drum n Bass, discogs: Drum n Bass, wiki: Drum_and_bass, lastfm: drum and bass}
+  - {name: UK Garage, discogs: UK Garage, wiki: UK_garage, lastfm: uk garage}
+  - {name: Afrobeats, discogs: Afrobeat, wiki: Afrobeats, lastfm: afrobeats}
+  - {name: Amapiano, discogs: Amapiano, wiki: Amapiano, lastfm: amapiano}
+  - {name: Reggaeton, discogs: Reggaeton, wiki: Reggaeton, lastfm: reggaeton}
+  - {name: K-pop, discogs: K-pop, wiki: K-pop, lastfm: k-pop}
+  - {name: J-pop, discogs: J-pop, wiki: J-pop, lastfm: j-pop}
+  - {name: Kayōkyoku, discogs: Kayōkyoku, wiki: Kayōkyoku, lastfm: kayokyoku}
+  - {name: Post-Punk, discogs: Post-Punk, wiki: Post-punk, lastfm: post-punk}
+  - {name: Emo, discogs: Emo, wiki: Emo, lastfm: emo}
+  - {name: Vaporwave, discogs: Vaporwave, wiki: Vaporwave, lastfm: vaporwave}
+  - {name: House, discogs: House, wiki: House_music, lastfm: house}
+  - {name: Techno, discogs: Techno, wiki: Techno, lastfm: techno}
+  - {name: Country, discogs: Country, wiki: Country_music, lastfm: country}
+  - {name: Trap, discogs: Trap, wiki: Trap_music, lastfm: trap}
+  - {name: Phonk, discogs: Phonk, wiki: Phonk, lastfm: phonk}
+
+# ニュース・指針になる情報ページ(RSS)
+feeds:
+  - {name: Pitchfork, url: "https://pitchfork.com/feed/feed-news/rss", lang: en}
+  - {name: Stereogum, url: "https://www.stereogum.com/feed/", lang: en}
+  - {name: Bandcamp Daily, url: "https://daily.bandcamp.com/feed", lang: en}
+  - {name: Billboard, url: "https://www.billboard.com/feed/", lang: en}
+  - {name: NME, url: "https://www.nme.com/news/music/feed", lang: en}
+  - {name: 音楽ナタリー, url: "https://natalie.mu/music/feed/news", lang: ja}
+  - {name: Musicman, url: "https://www.musicman.co.jp/feed", lang: ja}
+  - {name: Music Business Worldwide, url: "https://www.musicbusinessworldwide.com/feed/", lang: en}
+
+# Googleニュースで追う話題(直近14日)。媒体ごとの記事数と見出しを集める
+news_queries:
+  cd:
+    ja: ['CD 売上 OR 中古CD OR "CD 人気" OR "CD 復活"']
+    en: ['"CD sales" OR "compact disc" revival OR comeback']
+  vinyl:
+    ja: ['レコード 売上 OR 中古レコード OR アナログレコード 人気']
+    en: ['"vinyl sales" OR "vinyl records" demand OR revival']
+  cassette:
+    ja: ['カセットテープ 人気 OR カセットテープ 売上']
+    en: ['"cassette sales" OR "cassette tapes" revival OR comeback']
+
+# 掲示板(Reddit)。format を付けたものはメディア動向の指標にも使う
+subreddits:
+  - {name: vinyl, format: vinyl}
+  - {name: VinylCollectors, format: vinyl}
+  - {name: Cd_collectors, format: cd}
+  - {name: cassetteculture, format: cassette}
+  - {name: indieheads}
+  - {name: popheads}
+  - {name: hiphopheads}
+  - {name: listentothis}
+  - {name: japanesemusic}
+
+# Googleトレンド・X で件数を見るキーワード
+keywords:
+  vinyl: ["vinyl record", "レコード 買取"]
+  cd: ["cd player", "CD 買取"]
+  cassette: ["cassette tape", "カセットテープ"]
+
+# 年次予想
+forecast:
+  horizon: 5        # 何年先まで描くか
+  damping: 0.8      # 伸びが年ごとに弱まる度合い(1.0で減衰なし)
+  history_from: 2010

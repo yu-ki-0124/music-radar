@@ -1,0 +1,9 @@
+{
+  "name": "Music Radar",
+  "short_name": "Music Radar",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a1a19",
+  "theme_color": "#1a1a19",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
