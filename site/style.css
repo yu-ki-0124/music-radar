@@ -153,3 +153,5 @@ nav button { height: 52px; }
 nav button[aria-selected="true"] { box-shadow: none; background: var(--chip); }
 body { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
 a.dg { font-size: 12px; color: var(--vinyl); text-decoration: none; white-space: nowrap; }
+.verdict.act-up { background: color-mix(in srgb, var(--up) 18%, transparent); color: var(--up); }
+.verdict.act-down { background: color-mix(in srgb, var(--down) 18%, transparent); color: var(--down); }

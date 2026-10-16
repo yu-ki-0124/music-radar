@@ -14,7 +14,7 @@ const discogsUrl = (genre, f) => `https://www.discogs.com/search/?type=release&s
 const FORMATS = ['vinyl', 'cd', 'cassette'];
 const FLABEL = { vinyl: 'レコード', cd: 'CD', cassette: 'カセット' };
 // 統計の単位を読みやすい単位に直す(千枚→万枚、百万円→億円)
-const UNIT = { '千枚': [10, '万枚'], '千巻': [10, '万本'], '百万円': [100, '億円'], '百万枚': [1, '百万枚'] };
+const UNIT = { '千枚': [10, '万枚'], '千巻': [10, '万本'], '百万円': [100, '億円'], '百万枚': [0.01, '万枚'] };
 
 let D;
 const charts = [];
@@ -145,6 +145,14 @@ function nowCard(n) {
     <ul class="why">${n.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
 }
 
+// 中古のこれから(新品の動きからの読み)
+function outlookCard(o) {
+  const far = o.far.map((x) => { const [div, unit] = UNIT[x.unit] || [1, x.unit]; return `${x.region}の新品は${x.year}年に約${fmt(x.value / div)}${unit}(いまより ${signed(x.pct)})`; }).join(' / ');
+  return `<div class="card outlook"><div class="now-head"><h3>${esc(o.label)}の中古は</h3><span class="verdict act-${o.action === '増やす' ? 'up' : o.action === '絞る' ? 'down' : ''}">仕入れ: ${esc(o.action)}</span></div>
+    <p class="lead">${esc(o.why)}</p>
+    <ul class="why"><li>${esc(o.demand)}</li><li>${esc(o.supply)}</li>${far ? `<li>${far}${o.weak ? '(この予想は当たりにくいので参考程度に)' : ''}</li>` : ''}</ul></div>`;
+}
+
 // ---- まとめ ----
 function pickRow(w) {
   return `<div class="row"><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a>
@@ -165,6 +173,9 @@ function renderHome() {
     <h2>レコード・CD・カセットのいま</h2>
     <p class="lead">新品が去年より増えているか(公式統計)と、中古で手に入りにくいか(Discogs)。</p>
     ${D.media.now.map(nowCard).join('')}
+    <h2>中古はこれからどうなる?</h2>
+    <p class="lead">新品の動きから読んだ見通しです(目安であり、確かな予測ではありません)。</p>
+    ${(D.media.outlook || []).map(outlookCard).join('')}
     <h2>仕入れ候補(欲しい人が多い盤)</h2>
     <p class="lead">世界の中古盤サイトで、欲しい人に対して持っている人が少ない盤です。タップで盤のページへ。</p>
     ${picks}
@@ -229,7 +240,7 @@ function renderMedia() {
 
   $('tab-media').innerHTML = `
     ${seg('seg-format', FORMATS.map((x) => [x, FLABEL[x]]), f)}
-    ${now ? nowCard(now) : ''}${used}${production}`;
+    ${now ? nowCard(now) : ''}${(D.media.outlook || []).filter((o) => o.format === f).map(outlookCard).join('')}${used}${production}`;
   onSeg('seg-format', 'format', 'media');
   onSeg('seg-region', 'region', 'media');
 }

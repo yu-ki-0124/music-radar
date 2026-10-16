@@ -221,7 +221,56 @@ def media(cfg, snap):
         now.append({"format": fid, "label": f["label"], "verdict": trend_word(g), "growth_pct": g, "lines": lines})
 
     return {"series": out_series, "balance": balance, "demand": demand, "now": now,
+            "outlook": used_outlook(cfg, by_id, demand, now),
             "signals": score.format_signals(snap, cfg)}
+
+
+def used_outlook(cfg, by_id, demand, now):
+    """新品の動きから、中古の今後を読む(経験則)。
+    新品が増える=その媒体の人気が戻っている → 中古の需要も強い。
+    新品が増えた分は数年後に中古市場へ出てくる → 先々は出回る数が増える。"""
+    out = []
+    for n in now:
+        fid = n["format"]
+        g = n["growth_pct"]
+        d = demand["formats"].get(fid)
+        ratio = d["ratio"] if d else None
+        far = []
+        for region in ("jp", "us"):
+            sr = by_id.get(f"{region}_{fid}_units")
+            fc = sr and sr.get("forecast")
+            if fc and sr["values"]:
+                far.append((REGION_LABEL[region], fc["years"][-1], 100 * (fc["base"][-1] / sr["values"][-1] - 1),
+                            fc["base"][-1], sr["unit"], fc.get("mape")))
+        if g is None and ratio is None:
+            continue
+        scarce = ratio is not None and ratio >= 1
+        if g is not None and g >= 3:
+            demand_txt = "新品が増えているので、この媒体の人気は上向き。中古の需要も強まりやすい。"
+        elif g is not None and g <= -3:
+            demand_txt = "新品が減っているので、この媒体の人気は下向き。中古の需要も弱まりやすい。"
+        else:
+            demand_txt = "新品はほぼ横ばい。中古の需要も大きくは動きにくい。"
+        supply_txt = ("新品が増えた分は、数年後に中古へ出回り始める。先々は出回る数が増えて、値は落ち着きやすい。"
+                      if g is not None and g >= 3 else
+                      "新品が少ない時期に出た盤は、数年後に中古で手に入りにくくなる。" if g is not None and g <= -3 else
+                      "出回る数も大きくは変わらない見込み。")
+        if scarce and (g is None or g >= -3):
+            action, why = "増やす", "いま手に入りにくく、人気も落ちていない"
+        elif scarce:
+            action, why = "選んで", "手に入りにくいが、新品が減っていて人気は下向き"
+        elif g is not None and g >= 3:
+            action, why = "様子見", "人気は上向きだが、中古の盤はまだ出回っていて割安に買えるとは限らない"
+        elif g is not None and g <= -3:
+            action, why = "絞る", "新品が減り、中古も余裕がある"
+        else:
+            action, why = "様子見", "大きな動きがない"
+        weak = [f for f in far if f[5] is not None and f[5] >= 30]
+        out.append({"format": fid, "label": n["label"], "action": action, "why": why,
+                    "demand": demand_txt, "supply": supply_txt,
+                    "far": [{"region": r, "year": y, "pct": round(pc), "value": v, "unit": u} for r, y, pc, v, u, _ in far],
+                    "weak": bool(weak)})
+    return out
 
 
 def genres(cfg, snap, prev):
