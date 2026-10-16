@@ -7,6 +7,10 @@ const signed = (v, unit = '%') => (v == null ? '–' : `${v > 0 ? '+' : ''}${fmt
 const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');
 const safeUrl = (u) => (/^https?:\/\//.test(u || '') ? u : '#');
 const REGION = { all: '全体', jp: '日本', us: '米国', gb: '英国', kr: '韓国', de: 'ドイツ', fr: 'フランス', br: 'ブラジル', mx: 'メキシコ', in: 'インド', ng: 'ナイジェリア', au: '豪州', id: 'インドネシア', global: '世界' };
+const DISCOGS_STYLE = { Afrobeats: 'Afrobeat', 'J-pop': 'J-pop' };
+const DFMT = { vinyl: 'Vinyl', cd: 'CD', cassette: 'Cassette' };
+// ジャンル名からDiscogsの「欲しい人が多い順」一覧へ。媒体を指定すればその媒体だけ
+const discogsUrl = (genre, f) => `https://www.discogs.com/search/?type=release&style_exact=${encodeURIComponent(DISCOGS_STYLE[genre] || genre)}${f ? `&format_exact=${DFMT[f]}` : ''}&sort=have%2Casc`;
 const FORMATS = ['vinyl', 'cd', 'cassette'];
 const FLABEL = { vinyl: 'レコード', cd: 'CD', cassette: 'カセット' };
 // 統計の単位を読みやすい単位に直す(千枚→万枚、百万円→億円)
@@ -183,7 +187,7 @@ function renderMedia() {
   // 中古の需要
   const genreRows = d.by_genre.filter((r) => r[f]).sort((a, b) => b[f].ratio - a[f].ratio);
   const state3 = (x) => (x >= 1.5 ? '品薄' : x >= 1 ? 'やや品薄' : '余裕あり');
-  const gRow = (r) => `<tr><td>${esc(r.genre)}</td><td><b>${state3(r[f].ratio)}</b></td><td>欲しい${fmt(r[f].want)}人 / 持っている${fmt(r[f].have)}人</td>${d.since ? `<td class="${cls(r[f].want_change_pct)}">${signed(r[f].want_change_pct)}</td>` : ''}</tr>`;
+  const gRow = (r) => `<tr><td>${esc(r.genre)} <a class="dg" href="${discogsUrl(r.genre, f)}" target="_blank" rel="noopener">Discogs↗</a></td><td><b>${state3(r[f].ratio)}</b></td><td>欲しい${fmt(r[f].want)}人 / 持っている${fmt(r[f].have)}人</td>${d.since ? `<td class="${cls(r[f].want_change_pct)}">${signed(r[f].want_change_pct)}</td>` : ''}</tr>`;
   const gHead = `<tr><th>ジャンル</th><th>手に入りにくさ</th><th>欲しい人 / 持っている人</th>${d.since ? '<th>前回比</th>' : ''}</tr>`;
   const pick = (w, i) => `<div class="row"><div class="rank">${i + 1}</div><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a><div class="meta">${esc([w.style, w.country, w.year].filter(Boolean).join(' ・'))}</div><div class="meta">欲しい ${fmt(w.want)}人 / 持っている ${fmt(w.have)}人${w.lowest_jpy ? ` ・最安 ¥${fmt(w.lowest_jpy)}(出品${w.for_sale}点)` : ''}</div></div></div>`;
   const used = genreRows.length ? `
@@ -248,7 +252,7 @@ function renderArtists() {
 function renderGenres() {
   const g = D.genres;
   const word = (s) => (s == null ? '–' : s >= 54 ? '伸びている' : s >= 47 ? '横ばい' : '下がり気味');
-  const tracked = g.tracked.map((t, i) => `<details class="card"><summary><b>${esc(t.name)}</b><span class="chip ${t.score >= 54 ? 'up' : t.score < 47 ? 'down' : ''}">${word(t.score)}</span><div class="meta">${t.reasons.map(esc).join(' / ')}</div></summary><div data-lazy="${i}"></div></details>`).join('');
+  const tracked = g.tracked.map((t, i) => `<details class="card"><summary><b>${esc(t.name)}</b> <a class="dg" href="${discogsUrl(t.name)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Discogs↗</a><span class="chip ${t.score >= 54 ? 'up' : t.score < 47 ? 'down' : ''}">${word(t.score)}</span><div class="meta">${t.reasons.map(esc).join(' / ')}</div></summary><div data-lazy="${i}"></div></details>`).join('');
   const regions = Object.keys(g.charts);
   const rows = (g.charts[state.chartRegion] || []).map((r, i) => `<div class="row"><div class="rank">${i + 1}</div><div class="body"><div class="name">${esc(r.genre)}</div></div><div class="score"><b>${r.share}%</b>${r.delta != null ? `<small class="${cls(r.delta)}">${signed(r.delta, 'pt')}</small>` : ''}</div></div>`).join('');
   $('tab-genres').innerHTML = `
