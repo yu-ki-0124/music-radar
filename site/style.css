@@ -155,3 +155,12 @@ body { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
 a.dg { font-size: 12px; color: var(--vinyl); text-decoration: none; white-space: nowrap; }
 .verdict.act-up { background: color-mix(in srgb, var(--up) 18%, transparent); color: var(--up); }
 .verdict.act-down { background: color-mix(in srgb, var(--down) 18%, transparent); color: var(--down); }
+
+/* タブは上に固定(下のバーが出入りしても動かない) */
+nav { position: sticky; top: 0; left: auto; right: auto; bottom: auto; z-index: 10; margin: 6px 12px 0; box-shadow: 0 4px 16px rgba(40,25,5,.14); }
+body { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+header { padding-bottom: 2px; }
+.big { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 2px; }
+.big b { font-size: 44px; line-height: 1.1; font-family: Georgia, serif; font-variant-numeric: tabular-nums; }
+.big span { font-size: 12px; color: var(--text-2); }
+td.x b { font-size: 17px; }

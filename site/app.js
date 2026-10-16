@@ -142,7 +142,7 @@ function artistRow(a, i, full = true) {
 
 function nowCard(n) {
   return `<div class="card now"><div class="now-head"><h3>${esc(n.label)}</h3><span class="verdict ${cls(n.growth_pct)}">${esc(n.verdict)}</span></div>
-    <ul class="why">${n.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
+    ${n.ratio != null ? `<div class="big"><b>${n.ratio}倍</b><span>中古の人気盤: 欲しい人 ÷ 持っている人(1倍を超えると、欲しい人のほうが多い)</span></div>` : ''}<ul class="why">${n.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
 }
 
 // 中古のこれから(新品の動きからの読み)
@@ -157,7 +157,7 @@ function outlookCard(o) {
 function pickRow(w) {
   return `<div class="row"><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a>
     <div class="meta">${esc([w.year, w.country, w.style].filter(Boolean).join(' ・'))}</div>
-    <div class="meta">欲しい人 ${fmt(w.want)}人に対して、持っている人は ${fmt(w.have)}人だけ</div></div></div>`;
+    <div class="meta">欲しい ${fmt(w.want)}人 / 持っている ${fmt(w.have)}人 = <b>${w.ratio}倍</b></div></div></div>`;
 }
 
 function renderHome() {
@@ -198,9 +198,9 @@ function renderMedia() {
   // 中古の需要
   const genreRows = d.by_genre.filter((r) => r[f]).sort((a, b) => b[f].ratio - a[f].ratio);
   const state3 = (x) => (x >= 1.5 ? '品薄' : x >= 1 ? 'やや品薄' : '余裕あり');
-  const gRow = (r) => `<tr><td>${esc(r.genre)} <a class="dg" href="${discogsUrl(r.genre, f)}" target="_blank" rel="noopener">Discogs↗</a></td><td><b>${state3(r[f].ratio)}</b></td><td>欲しい${fmt(r[f].want)}人 / 持っている${fmt(r[f].have)}人</td>${d.since ? `<td class="${cls(r[f].want_change_pct)}">${signed(r[f].want_change_pct)}</td>` : ''}</tr>`;
-  const gHead = `<tr><th>ジャンル</th><th>手に入りにくさ</th><th>欲しい人 / 持っている人</th>${d.since ? '<th>前回比</th>' : ''}</tr>`;
-  const pick = (w, i) => `<div class="row"><div class="rank">${i + 1}</div><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a><div class="meta">${esc([w.style, w.country, w.year].filter(Boolean).join(' ・'))}</div><div class="meta">欲しい ${fmt(w.want)}人 / 持っている ${fmt(w.have)}人${w.lowest_jpy ? ` ・最安 ¥${fmt(w.lowest_jpy)}(出品${w.for_sale}点)` : ''}</div></div></div>`;
+  const gRow = (r) => `<tr><td>${esc(r.genre)} <a class="dg" href="${discogsUrl(r.genre, f)}" target="_blank" rel="noopener">Discogs↗</a></td><td class="x"><b>${r[f].ratio}倍</b></td><td>欲しい${fmt(r[f].want)}人 / 持っている${fmt(r[f].have)}人</td>${d.since ? `<td class="${cls(r[f].want_change_pct)}">${signed(r[f].want_change_pct)}</td>` : ''}</tr>`;
+  const gHead = `<tr><th>ジャンル</th><th>欲しい÷持っている</th><th>欲しい人 / 持っている人</th>${d.since ? '<th>前回比</th>' : ''}</tr>`;
+  const pick = (w, i) => `<div class="row"><div class="rank">${i + 1}</div><div class="body"><a class="name" href="${safeUrl(w.url)}" target="_blank" rel="noopener">${esc(w.title)}</a><div class="meta">${esc([w.style, w.country, w.year].filter(Boolean).join(' ・'))}</div><div class="meta">欲しい ${fmt(w.want)}人 / 持っている ${fmt(w.have)}人 = <b>${w.ratio}倍</b>${w.lowest_jpy ? ` ・最安 ¥${fmt(w.lowest_jpy)}(出品${w.for_sale}点)` : ''}</div></div></div>`;
   const used = genreRows.length ? `
     <h2>中古の需要</h2>
     <p class="lead">世界最大の中古盤サイト Discogs の登録から。欲しい人が持っている人より多いジャンルほど「品薄」(手に入りにくい=仕入れ向き)です。</p>

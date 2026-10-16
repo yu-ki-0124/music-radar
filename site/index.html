@@ -12,21 +12,13 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <header>
   <h1>Music Radar</h1>
   <p id="updated"></p>
 </header>
-
-<main>
-  <section id="tab-home" class="tab"></section>
-  <section id="tab-media" class="tab" hidden></section>
-  <section id="tab-artists" class="tab" hidden></section>
-  <section id="tab-genres" class="tab" hidden></section>
-  <section id="tab-news" class="tab" hidden></section>
-</main>
 
 <nav id="tabs" role="tablist">
   <button role="tab" data-tab="home" aria-selected="true">まとめ</button>
@@ -36,7 +28,16 @@
   <button role="tab" data-tab="news">ニュース</button>
 </nav>
 
+<main>
+  <section id="tab-home" class="tab"></section>
+  <section id="tab-media" class="tab" hidden></section>
+  <section id="tab-artists" class="tab" hidden></section>
+  <section id="tab-genres" class="tab" hidden></section>
+  <section id="tab-news" class="tab" hidden></section>
+</main>
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

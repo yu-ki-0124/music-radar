@@ -218,7 +218,8 @@ def media(cfg, snap):
             lines.append(txt)
         n = sum(1 for g in gnews if g["format"] == fid)
         g = round(sum(growths) / len(growths), 1) if growths else None
-        now.append({"format": fid, "label": f["label"], "verdict": trend_word(g), "growth_pct": g, "lines": lines})
+        now.append({"format": fid, "label": f["label"], "verdict": trend_word(g), "growth_pct": g, "lines": lines,
+                    "ratio": d["ratio"] if d else None})
 
     return {"series": out_series, "balance": balance, "demand": demand, "now": now,
             "outlook": used_outlook(cfg, by_id, demand, now),
